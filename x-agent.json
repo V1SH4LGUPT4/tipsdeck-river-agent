@@ -1,0 +1,39 @@
+{
+  "name": "X Trend Agent",
+  "agent_id": "x-trend-agent",
+  "short_description": "Shows trends and airdrops",
+  "description": "Simple agent that shows X trends and airdrop alpha",
+  "agent_type": "command",
+  "capabilities": [
+    {
+      "name": "x_data",
+      "description": "Fetch trends and alpha"
+    }
+  ],
+  "commands": [
+    {
+      "trigger": "trend",
+      "description": "Get latest trends",
+      "pricePerUnit": 0,
+      "priceType": "task-transaction",
+      "taskUnit": "per-query"
+    },
+    {
+      "trigger": "airdrop",
+      "description": "Get airdrop alpha",
+      "pricePerUnit": 0.02,
+      "priceType": "task-transaction",
+      "taskUnit": "per-query"
+    },
+    {
+      "trigger": "alpha",
+      "description": "Get early alpha",
+      "pricePerUnit": 0.05,
+      "priceType": "task-transaction",
+      "taskUnit": "per-query"
+    }
+  ],
+  "nlp_fallback": false,
+  "categories": ["Social Media"],
+  "metadata_version": "2.4.0"
+}
