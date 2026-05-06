@@ -1,84 +1,34 @@
+require("dotenv").config();
+
 const fs = require("fs");
-const cron = require("node-cron");
+const axios = require("axios");
 
-const keywords = [
-  "River",
-  "satUSD",
-  "River staking",
-  "River governance",
-  "River ecosystem",
-  "Hyperliquid",
-  "Base ecosystem",
-  "chain abstraction",
-  "cross-chain liquidity",
-  "onchain stablecoins",
-  "River Season 5",
-  "DeFi infrastructure",
-  "omnichain DeFi",
-  "streaming liquidity",
-  "yield infrastructure"
-];
+const {
+  Scraper
+} = require("agent-twitter-client");
 
-const shortStyles = [
-  "{k} feels massively underrated right now.",
-  "Watching smart builders move into {k}.",
-  "Feels like we're still early to {k}.",
-  "Most people are sleeping on what’s happening around {k}.",
-  "Strong communities are forming around {k}.",
-  "There’s real momentum building around {k}.",
-  "Builders focusing on {k} seem very early.",
-  "The ecosystem growth around {k} looks organic."
-];
+// ========================
+// X SESSION LOGIN
+// ========================
 
-const questions = [
-  "Anyone else watching {k} closely lately?",
-  "What’s your biggest thesis around {k}?",
-  "Do you think {k} becomes a major narrative this cycle?",
-  "Still surprised more people aren’t talking about {k}.",
-  "Bullish on where {k} could go from here."
-];
+const scraper = new Scraper();
 
-const bullishStyles = [
-  "{k} could become one of the strongest narratives this cycle.",
-  "The upside around {k} still feels underestimated.",
-  "Smart money seems to be paying attention to {k}.",
-  "Feels like {k} is quietly gaining momentum.",
-  "Very interested to see how fast {k} grows from here."
-];
+// ========================
+// LOAD CONFIG
+// ========================
 
-const analyticalStyles = [
-  "{k} is becoming more interesting from an infrastructure perspective.",
-  "The ecosystem expansion around {k} has been steady lately.",
-  "Liquidity and adoption around {k} continue improving.",
-  "Interesting to watch how builders are approaching {k}.",
-  "The long-term positioning around {k} looks thoughtful."
-];
+const config = JSON.parse(
+  fs.readFileSync("config.json")
+);
 
-const educationalStyles = [
-  "{k} is worth researching if you're interested in long-term crypto infrastructure.",
-  "A lot of people still misunderstand how {k} works.",
-  "The mechanics behind {k} are actually pretty interesting.",
-  "{k} is more than just short-term hype.",
-  "Understanding {k} takes more than just watching price charts."
-];
+const keywords = config.keywords;
+const hashtags = config.hashtags;
+const accounts = config.accounts;
+const modes = config.modes;
 
-const hashtags = [
-  "#River",
-  "#DeFi",
-  "#Base",
-  "#Hyperliquid",
-  "#Crypto",
-  "#Web3",
-  "#Yield",
-  "#Onchain"
-];
-
-const tags = [
-  "@RiverdotInc",
-  "@River4fun",
-  "@base",
-  "@HyperliquidX"
-];
+// ========================
+// EMOJIS
+// ========================
 
 const emojis = [
   "🔥",
@@ -88,129 +38,294 @@ const emojis = [
   "⚡",
   "📈",
   "💧",
-  "🛠️",
-  "🧠"
+  "🧠",
+  "🛠️"
 ];
+
+// ========================
+// FALLBACK STYLES
+// ========================
+
+const fallbackStyles = [
+  "{k} feels massively underrated right now.",
+  "Watching smart builders move into {k}.",
+  "Feels like we're still early to {k}.",
+  "Strong communities are forming around {k}.",
+  "There’s real momentum building around {k}.",
+  "Interesting developments happening around {k}.",
+  "Feels like adoption around {k} is quietly growing.",
+  "Smart money seems to be paying attention to {k}.",
+  "Builders focusing on {k} seem very early."
+];
+
+// ========================
+// HELPERS
+// ========================
 
 function random(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateSingleTweet() {
-  const keyword = random(keywords);
+function randomDelay() {
 
-  const allStyles = [
-    ...shortStyles,
-    ...questions,
-    ...bullishStyles,
-    ...analyticalStyles,
-    ...educationalStyles
-  ];
+  const min = 20;
+  const max = 90;
 
-  const style = random(allStyles);
+  return Math.floor(
+    Math.random() * (max - min + 1) + min
+  );
+}
 
-  const emoji = random(emojis);
+// ========================
+// BUILD FINAL TWEET
+// ========================
 
-  const useTag = Math.random() < 0.35;
+function buildTweet(text) {
 
   let tweet =
-    style.replace("{k}", keyword) +
+    text +
     " " +
-    emoji +
+    random(emojis) +
     " " +
     random(hashtags) +
     " " +
     random(hashtags);
 
-  if (useTag) {
-    tweet += " " + random(tags);
-  }
+  // ALWAYS ADD OFFICIAL TAG
+  tweet += " " + random(accounts);
 
-  return tweet;
+  return tweet.slice(0, 280);
 }
 
-function generateThread() {
-  const keyword = random(keywords);
+// ========================
+// GEMINI AI GENERATOR
+// ========================
+
+async function generateAITweet(keyword, mode) {
+
+  try {
+
+    const prompt = `
+Generate a smart crypto Twitter/X post.
+
+Topic: ${keyword}
+
+Mode: ${mode}
+
+Rules:
+- Human-like
+- Smart
+- Alpha style
+- Natural
+- Engaging
+- Max 220 characters
+- No markdown
+- No cringe
+`;
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ]
+      }
+    );
+
+    const text =
+      response.data.candidates[0]
+      .content.parts[0].text;
+
+    return text;
+
+  } catch (err) {
+
+    console.log(
+      "Gemini Error:",
+      err.message
+    );
+
+    return random(fallbackStyles)
+      .replace("{k}", keyword);
+  }
+}
+
+// ========================
+// THREAD MODE
+// ========================
+
+async function generateThread(keyword) {
 
   return `
 1/ Feels like we're still early to ${keyword}. 👀
 
-2/ Most users focus only on short-term price action.
+2/ Most users only focus on short-term price action.
 
-3/ But infrastructure, liquidity, and ecosystem growth usually matter more long term.
+3/ Infrastructure + liquidity + ecosystem growth matter long term.
 
-4/ Watching closely to see how ${keyword} evolves this cycle. 🚀
+4/ Watching closely how ${keyword} evolves this cycle. 🚀
 
-${random(hashtags)} ${random(hashtags)}
+${random(hashtags)} ${random(hashtags)} ${random(accounts)}
 `;
 }
 
-function generateContent() {
-  const chance = Math.random();
+// ========================
+// CONTENT ENGINE
+// ========================
 
-  if (chance < 0.25) {
-    return generateThread();
+async function generateContent() {
+
+  const keyword = random(keywords);
+
+  const mode = random(modes);
+
+  // THREAD MODE
+  if (mode === "thread") {
+    return await generateThread(keyword);
   }
 
-  return generateSingleTweet();
+  const aiTweet =
+    await generateAITweet(
+      keyword,
+      mode
+    );
+
+  return buildTweet(aiTweet);
 }
 
-function isDuplicate(content) {
-  if (!fs.existsSync("history.json")) {
-    return false;
-  }
+// ========================
+// SAVE LOGS
+// ========================
 
-  const history = JSON.parse(fs.readFileSync("history.json"));
+function saveTweet(tweet) {
 
-  return history.some(item => item.content === content);
-}
-
-function saveContent(content) {
-  let history = [];
-
-  if (fs.existsSync("history.json")) {
-    history = JSON.parse(fs.readFileSync("history.json"));
-  }
-
-  history.push({
-    content,
-    time: new Date().toISOString()
-  });
+  fs.appendFileSync(
+    "daily-log.txt",
+    `\n[${new Date().toISOString()}]\n${tweet}\n`
+  );
 
   fs.writeFileSync(
-    "history.json",
-    JSON.stringify(history, null, 2)
+    "latest.txt",
+    tweet
   );
 }
 
-function saveDailyLog(content) {
-  const log =
-    `[${new Date().toLocaleString()}]\n` +
-    content +
-    "\n\n";
+// ========================
+// LOGIN TO X
+// ========================
 
-  fs.appendFileSync("daily-log.txt", log);
+async function loginToX() {
+
+  try {
+
+    await scraper.login(
+      process.env.TWITTER_USERNAME,
+      process.env.TWITTER_PASSWORD,
+      process.env.TWITTER_EMAIL
+    );
+
+    console.log(
+      "Logged into X ✅"
+    );
+
+  } catch (err) {
+
+    console.log(
+      "X Login Error:",
+      err.message
+    );
+  }
 }
 
-function runAgent() {
-  let content;
+// ========================
+// POST TWEET
+// ========================
 
-  do {
-    content = generateContent();
-  } while (isDuplicate(content));
+async function postTweet(tweet) {
 
-  console.log("\n========================");
-  console.log("Tipsdeck River Agent");
-  console.log("========================");
-  console.log(content);
-  console.log("========================\n");
+  try {
 
-  saveContent(content);
-  saveDailyLog(content);
+    await scraper.sendTweet(tweet);
+
+    console.log(
+      "Tweet Posted 🚀"
+    );
+
+  } catch (err) {
+
+    console.log(
+      "Twitter Post Error:",
+      err.message
+    );
+  }
 }
 
-runAgent();
+// ========================
+// MAIN AGENT
+// ========================
 
-cron.schedule("*/30 * * * *", () => {
-  runAgent();
-});
+async function runAgent() {
+
+  const tweet =
+    await generateContent();
+
+  console.log(
+    "\n========================"
+  );
+
+  console.log(
+    "Tipsdeck AI Agent"
+  );
+
+  console.log(
+    "========================"
+  );
+
+  console.log(tweet);
+
+  console.log(
+    "========================\n"
+  );
+
+  saveTweet(tweet);
+
+  await postTweet(tweet);
+}
+
+// ========================
+// MAIN LOOP
+// ========================
+
+async function loop() {
+
+  // LOGIN FIRST
+  await loginToX();
+
+  while (true) {
+
+    await runAgent();
+
+    const delay =
+      randomDelay();
+
+    console.log(
+      `Sleeping for ${delay} minutes...`
+    );
+
+    await new Promise(resolve =>
+      setTimeout(
+        resolve,
+        delay * 60 * 1000
+      )
+    );
+  }
+}
+
+// START
+loop();

@@ -7,6 +7,10 @@
     "start": "node smart-agent.js"
   },
   "dependencies": {
-    "node-cron": "^3.0.3"
+    "agent-twitter-client": "^0.0.18",
+    "axios": "^1.16.0",
+    "dotenv": "^17.4.2",
+    "node-cron": "^3.0.3",
+    "twitter-api-v2": "^1.29.0"
   }
 }
