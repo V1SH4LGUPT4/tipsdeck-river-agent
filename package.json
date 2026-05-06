@@ -1,0 +1,12 @@
+{
+  "name": "tipsdeck-river-agent",
+  "version": "1.0.0",
+  "description": "Autonomous River farming agent",
+  "main": "smart-agent.js",
+  "scripts": {
+    "start": "node smart-agent.js"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.3"
+  }
+}
