@@ -1,16 +1,14 @@
 {
   "name": "tipsdeck-river-agent",
   "version": "1.0.0",
-  "description": "Autonomous River farming agent",
-  "main": "smart-agent.js",
+  "description": "AI Twitter Agent",
+  "main": "browser-agent.js",
   "scripts": {
-    "start": "node smart-agent.js"
+    "start": "node browser-agent.js"
   },
   "dependencies": {
-    "agent-twitter-client": "^0.0.18",
-    "axios": "^1.16.0",
-    "dotenv": "^17.4.2",
-    "node-cron": "^3.0.3",
-    "twitter-api-v2": "^1.29.0"
+    "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
+    "puppeteer-core": "^24.8.2"
   }
 }
