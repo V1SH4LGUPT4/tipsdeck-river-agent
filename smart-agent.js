@@ -14,6 +14,31 @@ const {
 const scraper = new Scraper();
 
 // ========================
+// COOKIE AUTH
+// ========================
+
+async function setupTwitterSession() {
+
+  try {
+
+    await scraper.setCookies([
+      `auth_token=${process.env.TWITTER_AUTH_TOKEN}`
+    ]);
+
+    console.log(
+      "X Cookie Session Loaded ✅"
+    );
+
+  } catch (err) {
+
+    console.log(
+      "Cookie Session Error:",
+      err
+    );
+  }
+}
+
+// ========================
 // LOAD CONFIG
 // ========================
 
@@ -43,7 +68,7 @@ const emojis = [
 ];
 
 // ========================
-// FALLBACK TWEETS
+// FALLBACK STYLES
 // ========================
 
 const fallbackStyles = [
@@ -63,8 +88,11 @@ const fallbackStyles = [
 // ========================
 
 function random(arr) {
+
   return arr[
-    Math.floor(Math.random() * arr.length)
+    Math.floor(
+      Math.random() * arr.length
+    )
   ];
 }
 
@@ -195,8 +223,8 @@ async function generateContent() {
   const mode =
     random(modes);
 
-  // THREAD
   if (mode === "thread") {
+
     return await generateThread(
       keyword
     );
@@ -228,33 +256,6 @@ function saveTweet(tweet) {
     "latest.txt",
     tweet
   );
-}
-
-// ========================
-// LOGIN TO X
-// ========================
-
-async function loginToX() {
-
-  try {
-
-    await scraper.login(
-      process.env.TWITTER_USERNAME,
-      process.env.TWITTER_PASSWORD,
-      process.env.TWITTER_EMAIL
-    );
-
-    console.log(
-      "Logged into X ✅"
-    );
-
-  } catch (err) {
-
-    console.log(
-      "X Login Error:",
-      err
-    );
-  }
 }
 
 // ========================
@@ -315,12 +316,13 @@ async function runAgent() {
 }
 
 // ========================
-// LOOP
+// MAIN LOOP
 // ========================
 
 async function loop() {
 
-  await loginToX();
+  // LOAD COOKIE SESSION
+  await setupTwitterSession();
 
   while (true) {
 
