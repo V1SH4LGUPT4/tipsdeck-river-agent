@@ -97,10 +97,16 @@ function random(arr) {
   ];
 }
 
+// ========================
+// SLOW SAFE DELAY
+// ========================
+
 function randomDelay() {
 
-  const min = 20;
-  const max = 90;
+  // 3 HOURS TO 7 HOURS
+
+  const min = 180;
+  const max = 420;
 
   return Math.floor(
     Math.random() * (max - min + 1) + min
@@ -118,13 +124,16 @@ function buildTweet(text) {
     " " +
     random(emojis) +
     " " +
-    random(hashtags) +
-    " " +
     random(hashtags);
 
-  tweet +=
-    " " +
-    random(accounts);
+  // 50% chance to tag account
+
+  if (Math.random() > 0.5) {
+
+    tweet +=
+      " " +
+      random(accounts);
+  }
 
   return tweet.slice(0, 280);
 }
@@ -141,7 +150,7 @@ async function generateAITweet(
   try {
 
     const prompt = `
-Generate a smart crypto Twitter/X post.
+Generate a natural human crypto Twitter/X post.
 
 Topic: ${keyword}
 
@@ -150,10 +159,11 @@ Mode: ${mode}
 Rules:
 - Human-like
 - Smart
-- Alpha style
 - Natural
-- Max 220 chars
+- No hype spam
+- Max 180 chars
 - No markdown
+- No emojis inside text
 `;
 
     const response =
@@ -199,15 +209,15 @@ async function generateThread(
 ) {
 
   return `
-1/ Feels like we're still early to ${keyword}. 👀
+1/ Feels like we're still early to ${keyword}.
 
 2/ Most users only focus on short-term price action.
 
 3/ Infrastructure + liquidity + ecosystem growth matter long term.
 
-4/ Watching closely how ${keyword} evolves this cycle. 🚀
+4/ Watching closely how ${keyword} evolves this cycle.
 
-${random(hashtags)} ${random(hashtags)} ${random(accounts)}
+${random(hashtags)}
 `;
 }
 
@@ -223,7 +233,12 @@ async function generateContent() {
   const mode =
     random(modes);
 
-  if (mode === "thread") {
+  // LOW THREAD USAGE
+
+  if (
+    mode === "thread" &&
+    Math.random() > 0.7
+  ) {
 
     return await generateThread(
       keyword
