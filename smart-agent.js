@@ -8,7 +8,7 @@ const {
 } = require("agent-twitter-client");
 
 // ========================
-// X SESSION LOGIN
+// SCRAPER
 // ========================
 
 const scraper = new Scraper();
@@ -43,7 +43,7 @@ const emojis = [
 ];
 
 // ========================
-// FALLBACK STYLES
+// FALLBACK TWEETS
 // ========================
 
 const fallbackStyles = [
@@ -63,7 +63,9 @@ const fallbackStyles = [
 // ========================
 
 function random(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[
+    Math.floor(Math.random() * arr.length)
+  ];
 }
 
 function randomDelay() {
@@ -77,7 +79,7 @@ function randomDelay() {
 }
 
 // ========================
-// BUILD FINAL TWEET
+// BUILD TWEET
 // ========================
 
 function buildTweet(text) {
@@ -91,17 +93,21 @@ function buildTweet(text) {
     " " +
     random(hashtags);
 
-  // ALWAYS ADD OFFICIAL TAG
-  tweet += " " + random(accounts);
+  tweet +=
+    " " +
+    random(accounts);
 
   return tweet.slice(0, 280);
 }
 
 // ========================
-// GEMINI AI GENERATOR
+// GEMINI AI
 // ========================
 
-async function generateAITweet(keyword, mode) {
+async function generateAITweet(
+  keyword,
+  mode
+) {
 
   try {
 
@@ -115,34 +121,33 @@ Mode: ${mode}
 Rules:
 - Human-like
 - Smart
-- Alpha style
 - Natural
 - Engaging
-- Max 220 characters
+- Alpha style
+- Max 220 chars
 - No markdown
-- No cringe
 `;
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
-      }
-    );
+    const response =
+      await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ]
+        }
+      );
 
-    const text =
-      response.data.candidates[0]
-      .content.parts[0].text;
-
-    return text;
+    return response.data
+      .candidates[0]
+      .content.parts[0]
+      .text;
 
   } catch (err) {
 
@@ -151,8 +156,9 @@ Rules:
       err.message
     );
 
-    return random(fallbackStyles)
-      .replace("{k}", keyword);
+    return random(
+      fallbackStyles
+    ).replace("{k}", keyword);
   }
 }
 
@@ -160,7 +166,9 @@ Rules:
 // THREAD MODE
 // ========================
 
-async function generateThread(keyword) {
+async function generateThread(
+  keyword
+) {
 
   return `
 1/ Feels like we're still early to ${keyword}. 👀
@@ -181,13 +189,17 @@ ${random(hashtags)} ${random(hashtags)} ${random(accounts)}
 
 async function generateContent() {
 
-  const keyword = random(keywords);
+  const keyword =
+    random(keywords);
 
-  const mode = random(modes);
+  const mode =
+    random(modes);
 
-  // THREAD MODE
+  // THREAD
   if (mode === "thread") {
-    return await generateThread(keyword);
+    return await generateThread(
+      keyword
+    );
   }
 
   const aiTweet =
@@ -196,7 +208,9 @@ async function generateContent() {
       mode
     );
 
-  return buildTweet(aiTweet);
+  return buildTweet(
+    aiTweet
+  );
 }
 
 // ========================
@@ -238,20 +252,22 @@ async function loginToX() {
 
     console.log(
       "X Login Error:",
-      err.message
+      err
     );
   }
 }
 
 // ========================
-// POST TWEET
+// POST TO X
 // ========================
 
 async function postTweet(tweet) {
 
   try {
 
-    await scraper.sendTweet(tweet);
+    await scraper.sendTweet(
+      tweet
+    );
 
     console.log(
       "Tweet Posted 🚀"
@@ -261,7 +277,7 @@ async function postTweet(tweet) {
 
     console.log(
       "Twitter Post Error:",
-      err.message
+      err
     );
   }
 }
@@ -299,12 +315,11 @@ async function runAgent() {
 }
 
 // ========================
-// MAIN LOOP
+// LOOP
 // ========================
 
 async function loop() {
 
-  // LOGIN FIRST
   await loginToX();
 
   while (true) {
