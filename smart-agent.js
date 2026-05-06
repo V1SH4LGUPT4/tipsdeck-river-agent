@@ -22,7 +22,8 @@ async function setupTwitterSession() {
   try {
 
     await scraper.setCookies([
-      `auth_token=${process.env.TWITTER_AUTH_TOKEN}`
+      `auth_token=${process.env.TWITTER_AUTH_TOKEN}`,
+      `ct0=${process.env.TWITTER_CT0}`
     ]);
 
     console.log(
@@ -68,7 +69,7 @@ const emojis = [
 ];
 
 // ========================
-// FALLBACK STYLES
+// FALLBACK TEMPLATES
 // ========================
 
 const fallbackStyles = [
@@ -149,9 +150,8 @@ Mode: ${mode}
 Rules:
 - Human-like
 - Smart
-- Natural
-- Engaging
 - Alpha style
+- Natural
 - Max 220 chars
 - No markdown
 `;
@@ -277,9 +277,10 @@ async function postTweet(tweet) {
   } catch (err) {
 
     console.log(
-      "Twitter Post Error:",
-      err
+      "Twitter Post Error:"
     );
+
+    console.log(err);
   }
 }
 
@@ -316,12 +317,11 @@ async function runAgent() {
 }
 
 // ========================
-// MAIN LOOP
+// LOOP
 // ========================
 
 async function loop() {
 
-  // LOAD COOKIE SESSION
   await setupTwitterSession();
 
   while (true) {
