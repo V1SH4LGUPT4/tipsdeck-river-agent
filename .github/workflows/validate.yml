@@ -1,0 +1,30 @@
+name: Validate Skill Repository
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required files
+        run: |
+          test -f SKILL.md
+          test -f README.md
+          test -f LICENSE
+
+      - name: Check required directories
+        run: |
+          test -d examples
+          test -d templates
+          test -d prompts
+
+      - name: Repository validation passed
+        run: echo "✅ Skill repository structure is valid."
